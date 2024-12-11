@@ -1,0 +1,46 @@
+version: "3.9"
+services:
+  windy-ec:
+    build: .
+    image: selenium_python:0.2
+    depends_on:
+      mitmproxy:
+        condition: service_healthy
+    user: ${MY_UID}:${MY_GID}
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ./:/app
+      - /data/project/windy:/data
+    command: "python /app/main.py -a ${WINDY_ACCOUNT} -p ${WINDY_PASSWORD} -m EC -o /data"
+  windy-gfs:
+    build: .
+    image: selenium_python:0.2
+    depends_on:
+      mitmproxy:
+        condition: service_healthy
+    user: ${MY_UID}:${MY_GID}
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ./:/app
+      - /data/project/windy:/data
+    command: "python /app/main.py -a ${WINDY_ACCOUNT} -p ${WINDY_PASSWORD} -m GFS -o /data"
+  mitmproxy:
+    image: mitmproxy/mitmproxy:9.0.1
+    volumes:
+      - ./:/app
+    healthcheck:
+      test: "bash -c 'echo >/dev/tcp/localhost/8080'"
+      interval: 0.5s
+      timeout: 0.5s
+      retries: 5
+    command: "mitmdump -s /app/override.py"

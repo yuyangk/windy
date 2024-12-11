@@ -1,0 +1,8 @@
+requests
+selenium
+Pillow
+scipy
+basemap
+pandas
+numpy 
+netCDF4
